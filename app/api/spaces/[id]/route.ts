@@ -8,11 +8,11 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 // GET /api/spaces/[id] - Get space details
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const { id } = params;
+    const { id } = await params;
 
     const { data, error } = await supabase
       .from('spaces')
@@ -52,11 +52,11 @@ export async function GET(
 // PUT /api/spaces/[id] - Update space
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
 
     // Get authenticated user from header
@@ -136,11 +136,11 @@ export async function PUT(
 // DELETE /api/spaces/[id] - Delete space
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const { id } = params;
+    const { id } = await params;
 
     // Get authenticated user from header
     const authHeader = request.headers.get('authorization');
