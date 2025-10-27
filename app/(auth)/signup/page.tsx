@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { signUp } from '@/lib/auth';
+import { signIn } from '@/lib/auth';
 import { UserType } from '@/types';
 
 export default function SignUpPage() {
@@ -44,14 +44,34 @@ export default function SignUpPage() {
     setLoading(true);
 
     try {
-      await signUp({
+      // Call signup API
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          userType: formData.userType,
+          phone: formData.phone || null,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create account');
+      }
+
+      // Now sign in the user
+      await signIn({
         email: formData.email,
         password: formData.password,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        userType: formData.userType,
-        phone: formData.phone || undefined,
       });
+
       router.push('/dashboard');
     } catch (err: any) {
       setError(err.message || 'Failed to create account');
