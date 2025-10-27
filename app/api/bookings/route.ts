@@ -5,9 +5,11 @@ import { ApiResponse } from '@/types';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-08-27.basil',
-});
+const stripe = process.env.STRIPE_SECRET_KEY
+  ? new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2025-08-27.basil',
+    })
+  : null;
 
 const PLATFORM_FEE_PERCENTAGE = 0.10; // 10% platform fee
 
@@ -67,6 +69,14 @@ export async function POST(request: NextRequest) {
     // Calculate platform fee (10%)
     const platformFee = totalPrice * PLATFORM_FEE_PERCENTAGE;
     const landlordAmount = totalPrice - platformFee;
+
+    // Check if Stripe is configured
+    if (!stripe) {
+      return NextResponse.json(
+        { success: false, error: 'Payment system not configured' },
+        { status: 500 }
+      );
+    }
 
     // Create Stripe Payment Intent
     const paymentIntent = await stripe.paymentIntents.create({
