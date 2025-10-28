@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { resetPassword } from '@/lib/auth';
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -17,9 +18,7 @@ export default function ResetPasswordPage() {
     setLoading(true);
 
     try {
-      // TODO: Implement password reset API call
-      // For now, just simulate success
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await resetPassword(email);
       setSubmitted(true);
     } catch (err: any) {
       setError(err.message || 'Failed to send reset email');
