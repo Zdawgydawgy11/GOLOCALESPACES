@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nUpdate Stripe API version to 2025-08-27.basil\n\nFixed TypeScript error by updating to correct Stripe API version.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git push)",
+      "Bash(vercel:*)",
+      "Bash(git commit:*)",
+      "Read(//c/Users/penny/Pictures/Screenshots/**)",
+      "Bash(mkdir:*)",
+      "Bash(test:*)",
+      "Bash(node scripts/seed-spaces.js:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

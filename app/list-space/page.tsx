@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { SpaceType, UsageType, RentalPeriodUnit } from '@/types';
+import ImageUpload, { UploadedImage } from '@/components/ImageUpload';
 
 export default function ListSpacePage() {
   const router = useRouter();
@@ -46,7 +47,7 @@ export default function ListSpacePage() {
 
   const [usageTypes, setUsageTypes] = useState<UsageType[]>([]);
   const [businessTypes, setBusinessTypes] = useState<string>('');
-  const [images, setImages] = useState<string[]>(['']);
+  const [images, setImages] = useState<UploadedImage[]>([]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,6 +62,34 @@ export default function ListSpacePage() {
         return;
       }
 
+      // Upload images first
+      const uploadedImageUrls: string[] = [];
+
+      for (const image of images) {
+        if (image.file) {
+          // Upload new file
+          const formData = new FormData();
+          formData.append('file', image.file);
+          formData.append('bucket', 'space-images');
+
+          const uploadResponse = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData,
+          });
+
+          const uploadData = await uploadResponse.json();
+
+          if (uploadData.success) {
+            uploadedImageUrls.push(uploadData.data.url);
+          } else {
+            throw new Error(`Failed to upload image: ${uploadData.error}`);
+          }
+        } else if (image.url) {
+          // Already uploaded or external URL
+          uploadedImageUrls.push(image.url);
+        }
+      }
+
       const payload = {
         ...formData,
         size_sqft: formData.size_sqft ? parseInt(formData.size_sqft) : null,
@@ -72,7 +101,7 @@ export default function ListSpacePage() {
         allowed_business_types: businessTypes.split(',').map(b => b.trim()).filter(Boolean),
         owner_id: userId,
         amenities,
-        images: images.filter(url => url.trim()).map(url => ({ url })),
+        images: uploadedImageUrls.map(url => ({ url })),
       };
 
       const response = await fetch('/api/spaces', {
@@ -96,16 +125,6 @@ export default function ListSpacePage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const addImageField = () => {
-    setImages([...images, '']);
-  };
-
-  const updateImage = (index: number, value: string) => {
-    const newImages = [...images];
-    newImages[index] = value;
-    setImages(newImages);
   };
 
   const toggleUsageType = (type: UsageType) => {
@@ -283,26 +302,9 @@ export default function ListSpacePage() {
             <div>
               <h2 className="text-xl font-semibold mb-4">Photos</h2>
               <p className="text-sm text-gray-600 mb-4">
-                Add image URLs for your space. The first image will be the primary photo.
+                Upload photos of your space. The first image will be the primary photo shown in listings.
               </p>
-              {images.map((img, index) => (
-                <div key={index} className="mb-3">
-                  <input
-                    type="url"
-                    value={img}
-                    onChange={(e) => updateImage(index, e.target.value)}
-                    placeholder="https://example.com/image.jpg"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
-                  />
-                </div>
-              ))}
-              <button
-                type="button"
-                onClick={addImageField}
-                className="text-primary-600 hover:text-primary-700 font-semibold"
-              >
-                + Add Another Image
-              </button>
+              <ImageUpload images={images} onChange={setImages} maxImages={10} />
             </div>
 
             {/* Amenities */}

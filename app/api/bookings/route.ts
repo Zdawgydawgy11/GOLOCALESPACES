@@ -78,8 +78,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create Stripe Payment Intent
-    const paymentIntent = await stripe.paymentIntents.create({
+    // Get landlord's Stripe account for Connect transfer
+    const landlord = space.users;
+
+    // Create payment intent with optional transfer to landlord
+    const paymentIntentParams: any = {
       amount: Math.round(totalPrice * 100), // Convert to cents
       currency: 'usd',
       metadata: {
@@ -92,7 +95,17 @@ export async function POST(request: NextRequest) {
         landlord_amount: landlordAmount.toFixed(2),
       },
       description: `Booking for ${space.title}`,
-    });
+    };
+
+    // If landlord has connected Stripe account, set up automatic transfer
+    if (landlord.stripe_account_id && landlord.stripe_onboarding_complete) {
+      paymentIntentParams.application_fee_amount = Math.round(platformFee * 100);
+      paymentIntentParams.transfer_data = {
+        destination: landlord.stripe_account_id,
+      };
+    }
+
+    const paymentIntent = await stripe.paymentIntents.create(paymentIntentParams);
 
     // Create booking record
     const { data: booking, error: bookingError } = await supabase

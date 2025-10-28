@@ -11,6 +11,8 @@ export default function SpaceDetailPage() {
   const [loading, setLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showBookingModal, setShowBookingModal] = useState(false);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   useEffect(() => {
     if (params.id) {
@@ -330,30 +332,91 @@ export default function SpaceDetailPage() {
         </div>
       </main>
 
-      {/* Booking Modal (placeholder for now) */}
+      {/* Booking Modal */}
       {showBookingModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4">
             <h2 className="text-2xl font-bold mb-4">Request Booking</h2>
-            <p className="text-gray-600 mb-6">
-              Please log in or create an account to request a booking for this space.
-            </p>
-            <div className="flex gap-4">
-              <Link
-                href="/login"
-                className="flex-1 py-3 bg-primary-600 text-white rounded-lg font-semibold hover:bg-primary-700 transition text-center"
-              >
-                Log In
-              </Link>
-              <Link
-                href="/signup"
-                className="flex-1 py-3 border-2 border-primary-600 text-primary-600 rounded-lg font-semibold hover:bg-primary-50 transition text-center"
-              >
-                Sign Up
-              </Link>
+
+            <div className="space-y-4 mb-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Start Date
+                </label>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  min={new Date().toISOString().split('T')[0]}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  End Date
+                </label>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  min={startDate || new Date().toISOString().split('T')[0]}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  required
+                />
+              </div>
+
+              {startDate && endDate && (
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <p className="text-sm text-gray-600 mb-2">Booking Summary:</p>
+                  <p className="font-semibold">
+                    {Math.ceil(
+                      (new Date(endDate).getTime() - new Date(startDate).getTime()) /
+                        (1000 * 60 * 60 * 24)
+                    )}{' '}
+                    days
+                  </p>
+                  <p className="text-sm text-gray-600 mt-2">
+                    Estimated cost: $
+                    {(
+                      (space.price_per_day || space.price_per_month / 30) *
+                      Math.ceil(
+                        (new Date(endDate).getTime() - new Date(startDate).getTime()) /
+                          (1000 * 60 * 60 * 24)
+                      )
+                    ).toFixed(2)}
+                  </p>
+                </div>
+              )}
             </div>
+
+            <div className="flex gap-4">
+              <button
+                onClick={() => {
+                  if (startDate && endDate) {
+                    router.push(
+                      `/checkout?space_id=${space.id}&start_date=${startDate}&end_date=${endDate}`
+                    );
+                  }
+                }}
+                disabled={!startDate || !endDate}
+                className={`flex-1 py-3 rounded-lg font-semibold transition text-center ${
+                  startDate && endDate
+                    ? 'bg-primary-600 text-white hover:bg-primary-700'
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                }`}
+              >
+                Proceed to Checkout
+              </button>
+            </div>
+
             <button
-              onClick={() => setShowBookingModal(false)}
+              onClick={() => {
+                setShowBookingModal(false);
+                setStartDate('');
+                setEndDate('');
+              }}
               className="mt-4 w-full text-gray-600 hover:text-gray-900"
             >
               Cancel
