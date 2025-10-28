@@ -7,11 +7,11 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 // GET /api/bookings/[id] - Get a single booking by ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const bookingId = params.id;
+    const { id: bookingId } = await params;
 
     const { data: booking, error } = await supabase
       .from('bookings')

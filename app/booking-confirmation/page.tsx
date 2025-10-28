@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
-export default function BookingConfirmationPage() {
+function BookingConfirmationContent() {
   const searchParams = useSearchParams();
   const bookingId = searchParams.get('id');
 
@@ -154,5 +154,17 @@ export default function BookingConfirmationPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function BookingConfirmationPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <p className="text-gray-600">Loading...</p>
+      </div>
+    }>
+      <BookingConfirmationContent />
+    </Suspense>
   );
 }
