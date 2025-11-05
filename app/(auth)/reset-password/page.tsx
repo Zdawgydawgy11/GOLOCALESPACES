@@ -114,7 +114,7 @@ function ResetPasswordContent() {
               This reset link is invalid or has expired.
             </p>
             <Link
-              href="/reset-password"
+              href="/forgot-password"
               className="block w-full py-3 bg-primary-600 text-white rounded-lg font-semibold hover:bg-primary-700 transition text-center"
             >
               Request New Reset Link

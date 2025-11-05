@@ -9,7 +9,11 @@
       "Read(//c/Users/penny/Pictures/Screenshots/**)",
       "Bash(mkdir:*)",
       "Bash(test:*)",
-      "Bash(node scripts/seed-spaces.js:*)"
+      "Bash(node scripts/seed-spaces.js:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm run dev:*)",
+      "Bash(awk:*)",
+      "Bash(ls:*)"
     ],
     "deny": [],
     "ask": []
