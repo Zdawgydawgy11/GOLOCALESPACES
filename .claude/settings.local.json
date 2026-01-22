@@ -13,7 +13,12 @@
       "Bash(npm run build:*)",
       "Bash(npm run dev:*)",
       "Bash(awk:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "WebFetch(domain:golocalspaces.vercel.app)",
+      "Bash(npm install:*)",
+      "Bash(pip install:*)",
+      "Bash(python:*)",
+      "Bash(cd:*)"
     ],
     "deny": [],
     "ask": []

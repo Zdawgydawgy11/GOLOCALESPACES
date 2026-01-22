@@ -1,22 +1,22 @@
-# GoLocal Spaces
+# B2B Market Space
 
-A marketplace platform connecting property owners with vendors, food trucks, and small businesses looking for short-term commercial space.
+A marketplace platform connecting hosts with renters, food trucks, and small businesses looking for short-term commercial space.
 
 ## Overview
 
-GoLocal Spaces simplifies the process of finding and booking temporary business locations. Property owners can monetize underutilized real estate while vendors get access to prime locations for their mobile businesses.
+B2B Market Space simplifies the process of finding and booking temporary business locations. Hosts can monetize underutilized real estate while renters get access to prime locations for their mobile businesses.
 
 ## Features
 
-### For Property Owners (Landlords)
+### For Hosts (Space Owners)
 - Create and manage space listings
 - Set pricing and availability
 - Accept or decline booking requests
 - Secure payment processing
 - View earnings dashboard
-- Rate and review vendors
+- Rate and review renters
 
-### For Vendors
+### For Renters (Space Seekers)
 - Browse available spaces by location
 - Filter by amenities, price, and space type
 - Book spaces instantly or request approval

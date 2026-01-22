@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { SpaceWithDetails, UsageType, SpaceType } from '@/types';
+import { APP_NAME } from '@/lib/config/app';
 
 export default function SpacesPage() {
   const [spaces, setSpaces] = useState<any[]>([]);
@@ -62,7 +63,7 @@ export default function SpacesPage() {
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
             <Link href="/" className="text-2xl font-bold text-primary-600">
-              GoLocal Spaces
+              {APP_NAME}
             </Link>
             <div className="flex gap-4">
               <Link
@@ -88,14 +89,61 @@ export default function SpacesPage() {
           <h1 className="text-4xl font-bold text-gray-900 mb-2">
             Browse Available Spaces
           </h1>
-          <p className="text-lg text-gray-600">
+          <p className="text-lg text-gray-600 mb-6">
             Find the perfect location for your business
           </p>
+
+          {/* Quick Search Bar */}
+          <div className="max-w-3xl">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search by city or state..."
+                value={filters.city || filters.state}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setFilters({ ...filters, city: value, state: '' });
+                }}
+                className="w-full px-6 py-4 pr-12 text-lg border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 shadow-sm"
+              />
+              <svg
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 w-6 h-6 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+            </div>
+          </div>
         </div>
 
         {/* Filters */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-          <h2 className="text-lg font-semibold mb-4">Filter Spaces</h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-semibold">Advanced Filters</h2>
+            <button
+              onClick={() =>
+                setFilters({
+                  city: '',
+                  state: '',
+                  space_type: '',
+                  usage_type: '',
+                  min_price: '',
+                  max_price: '',
+                  min_size: '',
+                })
+              }
+              className="text-sm text-gray-600 hover:text-primary-600 font-medium"
+            >
+              Clear All Filters
+            </button>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
             <input
               type="text"
@@ -157,13 +205,14 @@ export default function SpacesPage() {
               onChange={(e) => setFilters({ ...filters, min_size: e.target.value })}
               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             />
-            <button
-              onClick={fetchSpaces}
-              className="px-4 py-2 bg-primary-600 text-white rounded-lg font-semibold hover:bg-primary-700 transition"
-            >
-              Apply Filters
-            </button>
           </div>
+
+          {/* Results Count */}
+          {!loading && (
+            <div className="mt-4 text-sm text-gray-600">
+              Showing {spaces.length} {spaces.length === 1 ? 'space' : 'spaces'}
+            </div>
+          )}
         </div>
 
         {/* Loading State */}

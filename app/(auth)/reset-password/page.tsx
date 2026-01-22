@@ -13,15 +13,22 @@ function ResetPasswordContent() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-
-  // Check if we have the reset token from the URL
-  const hasToken = searchParams.get('token') !== null || searchParams.get('type') === 'recovery';
+  const [hasToken, setHasToken] = useState(false);
 
   useEffect(() => {
-    if (!hasToken) {
+    // Check for token in URL hash (Supabase sends it as #access_token=...&type=recovery)
+    const hash = window.location.hash;
+    const hasRecoveryToken = hash.includes('type=recovery') || hash.includes('access_token');
+
+    // Also check query parameters as fallback
+    const hasQueryToken = searchParams.get('token') !== null || searchParams.get('type') === 'recovery';
+
+    setHasToken(hasRecoveryToken || hasQueryToken);
+
+    if (!hasRecoveryToken && !hasQueryToken) {
       setError('Invalid or expired reset link. Please request a new password reset.');
     }
-  }, [hasToken]);
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

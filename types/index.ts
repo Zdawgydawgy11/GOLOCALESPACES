@@ -1,5 +1,5 @@
 // User Types
-export type UserType = 'landlord' | 'vendor' | 'both';
+export type UserType = 'host' | 'renter' | 'both';
 
 export interface User {
   id: string;
@@ -10,8 +10,8 @@ export interface User {
   user_type: UserType;
   profile_image_url?: string;
   verified: boolean;
-  created_at: Date;
-  updated_at: Date;
+  created_at: string; // ISO
+  updated_at: string; // ISO
 }
 
 // Vendor Profile - for tracking vendor experience and qualifications
@@ -30,7 +30,16 @@ export interface VendorProfile {
 }
 
 // Space Types
-export type SpaceType = 'parking_lot' | 'storefront' | 'vacant_land' | 'warehouse' | 'other';
+export type SpaceType =
+  | 'parking_lot'
+  | 'storefront'
+  | 'vacant_land'
+  | 'warehouse'
+  | 'office'
+  | 'restaurant_subspace'
+  | 'commissary_kitchen'
+  | 'gym'
+  | 'other';
 export type SpaceStatus = 'active' | 'inactive' | 'pending_verification';
 export type UsageType = 'food_truck' | 'drive_thru' | 'retail' | 'stand' | 'pop_up' | 'event' | 'other';
 export type RentalPeriodUnit = 'days' | 'months' | 'years';
@@ -54,19 +63,27 @@ export interface Space {
   instant_book: boolean;
   status: SpaceStatus;
 
-  // Extended landlord requirements
-  allowed_usage_types?: UsageType[];
-  allowed_business_types?: string[]; // Array of business types allowed
-  operating_hours?: string; // e.g., "6am-10pm Mon-Fri"
-  insurance_requirements?: string;
-  rental_period_length?: number; // Length of rental period
-  rental_period_unit?: RentalPeriodUnit; // Unit for rental period
-  payment_collection_day?: number; // Day of month for rent collection (1-31)
-  vendor_experience_required?: number; // Years of experience required
-  additional_terms?: string; // Any other terms/qualifications
+  // Zoning information
+  zoning_code?: string;
+  zoning_source?: string;
+  zoning_last_checked_at?: string;
+  zoning_confidence?: number;
+  host_zoning_certified?: boolean;
+  zoning_notes?: string;
 
-  created_at: Date;
-  updated_at: Date;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ZoningLookup {
+  id: string;
+  space_id: string;
+  address: string;
+  zoning_code?: string;
+  raw_response?: Record<string, any>;
+  source?: string;
+  confidence?: number;
+  created_at: string;
 }
 
 export interface SpaceAmenities {
@@ -114,24 +131,40 @@ export interface SpaceWithDetails extends Space {
 }
 
 // Booking Types
-export type BookingStatus = 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'declined';
-export type PaymentStatus = 'pending' | 'paid' | 'refunded' | 'partial_refund';
+export type BookingStatus =
+  | 'pending'
+  | 'approved'
+  | 'declined'
+  | 'confirmed'
+  | 'cancelled'
+  | 'completed';
+
+export type PaymentStatus =
+  | 'pending'
+  | 'authorized'
+  | 'captured'
+  | 'refunded'
+  | 'failed';
 
 export interface Booking {
   id: string;
   space_id: string;
-  vendor_id: string;
-  landlord_id: string;
-  start_date: Date;
-  end_date: Date;
+  renter_id: string;
+  host_id: string;
+  start_date: string;
+  end_date: string;
   total_price: number;
+  host_payout_amount: number;
+  renter_fee_amount: number;
+  host_fee_amount: number;
+  cleaning_fee?: number;
+  teardown_fee?: number;
+  damage_deposit?: number;
   booking_status: BookingStatus;
   payment_status: PaymentStatus;
   stripe_payment_intent_id?: string;
-  special_requests?: string;
-  cancellation_reason?: string;
-  created_at: Date;
-  updated_at: Date;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface BookingWithDetails extends Booking {

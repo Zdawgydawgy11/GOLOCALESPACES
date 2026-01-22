@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { getCurrentUser, signOut } from '@/lib/auth';
 import { User } from '@/types';
+import { APP_NAME } from '@/lib/config/app';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -51,8 +52,8 @@ export default function DashboardPage() {
     );
   }
 
-  const isLandlord = user?.user_type === 'landlord' || user?.user_type === 'both';
-  const isVendor = user?.user_type === 'vendor' || user?.user_type === 'both';
+  const isHost = user?.user_type === 'host' || user?.user_type === 'both';
+  const isRenter = user?.user_type === 'renter' || user?.user_type === 'both';
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -61,7 +62,7 @@ export default function DashboardPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
             <Link href="/" className="text-2xl font-bold text-primary-600">
-              GoLocal Spaces
+              {APP_NAME}
             </Link>
             <div className="flex items-center gap-4">
               <span className="text-gray-700">
@@ -88,7 +89,7 @@ export default function DashboardPage() {
             >
               Dashboard
             </Link>
-            {isLandlord && (
+            {isHost && (
               <Link
                 href="/dashboard/my-spaces"
                 className="text-gray-600 hover:text-primary-600 transition"
@@ -96,7 +97,7 @@ export default function DashboardPage() {
                 My Spaces
               </Link>
             )}
-            {isVendor && (
+            {isRenter && (
               <>
                 <Link
                   href="/spaces"
@@ -135,15 +136,15 @@ export default function DashboardPage() {
             Welcome back, {user?.first_name}!
           </h1>
           <p className="text-gray-600">
-            {isLandlord && isVendor && "Manage your spaces and bookings"}
-            {isLandlord && !isVendor && "Manage your property listings"}
-            {!isLandlord && isVendor && "Find and book your perfect space"}
+            {isHost && isRenter && "Manage your spaces and bookings"}
+            {isHost && !isRenter && "Manage your property listings"}
+            {!isHost && isRenter && "Find and book your perfect space"}
           </p>
         </div>
 
         {/* Quick Actions */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          {isLandlord && (
+          {isHost && (
             <Link
               href="/dashboard/spaces/new"
               className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition"
@@ -162,7 +163,7 @@ export default function DashboardPage() {
             </Link>
           )}
 
-          {isVendor && (
+          {isRenter && (
             <Link
               href="/spaces"
               className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition"
@@ -201,7 +202,7 @@ export default function DashboardPage() {
 
         {/* Stats Overview */}
         <div className="grid md:grid-cols-3 gap-6">
-          {isLandlord && (
+          {isHost && (
             <>
               <div className="bg-white p-6 rounded-lg shadow">
                 <h3 className="text-sm font-medium text-gray-600 mb-2">Active Listings</h3>
@@ -215,7 +216,7 @@ export default function DashboardPage() {
               </div>
             </>
           )}
-          {isVendor && (
+          {isRenter && (
             <>
               <div className="bg-white p-6 rounded-lg shadow">
                 <h3 className="text-sm font-medium text-gray-600 mb-2">Active Bookings</h3>

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { APP_NAME } from '@/lib/config/app';
 
 export default function HomePage() {
   return (
@@ -8,7 +9,7 @@ export default function HomePage() {
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-primary-600">GoLocal Spaces</h1>
+              <h1 className="text-2xl font-bold text-primary-600">{APP_NAME}</h1>
             </div>
             <div className="flex gap-4">
               <Link
@@ -107,7 +108,7 @@ export default function HomePage() {
               Ready to Activate Your Local Economy?
             </h3>
             <p className="text-xl text-primary-100 mb-8">
-              Join hundreds of property owners and vendors making local business easier.
+              Join hundreds of hosts and renters making local business easier.
             </p>
             <Link
               href="/signup"
@@ -122,7 +123,7 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p>&copy; 2025 GoLocal Spaces. All rights reserved.</p>
+          <p>&copy; 2025 {APP_NAME}. All rights reserved.</p>
         </div>
       </footer>
     </div>

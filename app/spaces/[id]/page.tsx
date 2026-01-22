@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import ReviewsList from '@/components/ReviewsList';
 
 export default function SpaceDetailPage() {
   const params = useParams();
@@ -13,10 +14,13 @@ export default function SpaceDetailPage() {
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [isFavorited, setIsFavorited] = useState(false);
+  const [favoriteLoading, setFavoriteLoading] = useState(false);
 
   useEffect(() => {
     if (params.id) {
       fetchSpaceDetails();
+      checkIfFavorited();
     }
   }, [params.id]);
 
@@ -31,6 +35,58 @@ export default function SpaceDetailPage() {
       console.error('Error fetching space details:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const checkIfFavorited = async () => {
+    try {
+      const response = await fetch(`/api/favorites/check?spaceId=${params.id}`);
+      if (response.ok) {
+        const data = await response.json();
+        setIsFavorited(data.isFavorited);
+      }
+    } catch (error) {
+      console.error('Error checking favorite status:', error);
+    }
+  };
+
+  const toggleFavorite = async () => {
+    try {
+      setFavoriteLoading(true);
+
+      if (isFavorited) {
+        const response = await fetch(`/api/favorites?spaceId=${params.id}`, {
+          method: 'DELETE',
+        });
+
+        if (response.ok) {
+          setIsFavorited(false);
+        } else {
+          throw new Error('Failed to remove favorite');
+        }
+      } else {
+        const response = await fetch('/api/favorites', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ spaceId: params.id }),
+        });
+
+        if (response.ok) {
+          setIsFavorited(true);
+        } else {
+          const data = await response.json();
+          if (response.status === 401) {
+            router.push('/login');
+            return;
+          }
+          throw new Error(data.error || 'Failed to add favorite');
+        }
+      }
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+      alert('Failed to update favorite. Please try again.');
+    } finally {
+      setFavoriteLoading(false);
     }
   };
 
@@ -170,9 +226,31 @@ export default function SpaceDetailPage() {
           <div className="lg:col-span-2">
             {/* Title and Location */}
             <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                {space.title}
-              </h1>
+              <div className="flex justify-between items-start mb-2">
+                <h1 className="text-3xl font-bold text-gray-900 flex-1">
+                  {space.title}
+                </h1>
+                <button
+                  onClick={toggleFavorite}
+                  disabled={favoriteLoading}
+                  className="p-3 rounded-full hover:bg-gray-100 transition disabled:opacity-50"
+                  title={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
+                >
+                  <svg
+                    className={`w-7 h-7 ${isFavorited ? 'text-red-500 fill-current' : 'text-gray-400'}`}
+                    fill={isFavorited ? 'currentColor' : 'none'}
+                    stroke="currentColor"
+                    strokeWidth={isFavorited ? 0 : 2}
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                    />
+                  </svg>
+                </button>
+              </div>
               <p className="text-gray-600 mb-4">
                 {space.address}, {space.city}, {space.state} {space.zip_code}
               </p>
@@ -268,7 +346,7 @@ export default function SpaceDetailPage() {
             </div>
 
             {/* Owner Info */}
-            <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="bg-white rounded-lg shadow-md p-6 mb-6">
               <h2 className="text-xl font-semibold mb-4">Property Owner</h2>
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center">
@@ -293,6 +371,12 @@ export default function SpaceDetailPage() {
                 </div>
               </div>
             </div>
+
+            {/* Reviews */}
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <h2 className="text-xl font-semibold mb-4">Reviews</h2>
+              <ReviewsList spaceId={space.id} />
+            </div>
           </div>
 
           {/* Sidebar - Booking */}
@@ -315,12 +399,12 @@ export default function SpaceDetailPage() {
                 Request Booking
               </button>
 
-              <button
-                onClick={() => router.push('/login')}
-                className="w-full py-3 border-2 border-primary-600 text-primary-600 rounded-lg font-semibold hover:bg-primary-50 transition"
+              <Link
+                href="/dashboard/messages"
+                className="block w-full py-3 border-2 border-primary-600 text-primary-600 rounded-lg font-semibold hover:bg-primary-50 transition text-center"
               >
                 Contact Owner
-              </button>
+              </Link>
 
               <div className="mt-6 pt-6 border-t border-gray-200">
                 <p className="text-sm text-gray-600 text-center">

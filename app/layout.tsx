@@ -1,22 +1,29 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
+// app/layout.tsx
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
+import './globals.css';
+import { APP_NAME, APP_DESCRIPTION } from '@/lib/config/app';
+// import { HelpCenterWidget } from '@/components/support/HelpCenterWidget'; // Part 4
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: "GoLocal Spaces - Find Your Perfect Business Location",
-  description: "Connect property owners with vendors, food trucks, and small businesses looking for short-term commercial space.",
+  title: APP_NAME,
+  description: APP_DESCRIPTION,
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body className={`${inter.className} bg-gray-50 text-gray-900`}>
+        {/* TODO: Add Header/Nav component */}
+        {children}
+        {/* <HelpCenterWidget />  // will be implemented in Part 4 */}
+      </body>
     </html>
   );
 }

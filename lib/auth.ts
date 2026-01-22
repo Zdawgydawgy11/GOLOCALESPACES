@@ -84,26 +84,31 @@ export const signOut = async () => {
   }
 };
 
-export const getCurrentUser = async (): Promise<User | null> => {
-  try {
-    const { data: { session } } = await supabase.auth.getSession();
+export async function getCurrentSession() {
+  const { data, error } = await supabase.auth.getSession();
+  if (error) throw error;
+  return data.session ?? null;
+}
 
-    if (!session) return null;
+export async function getCurrentUserProfile(): Promise<User | null> {
+  const session = await getCurrentSession();
+  if (!session) return null;
 
-    const { data: userData, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', session.user.id)
-      .single();
+  const { data, error } = await supabase
+    .from('users')
+    .select('*')
+    .eq('id', session.user.id)
+    .single<User>();
 
-    if (error) throw error;
-
-    return userData as User;
-  } catch (error) {
-    console.error('Get current user error:', error);
+  if (error) {
+    console.error('Error fetching user profile', error);
     return null;
   }
-};
+
+  return data;
+}
+
+export const getCurrentUser = getCurrentUserProfile; // Backward compatibility alias
 
 export const updateUserProfile = async (userId: string, updates: Partial<User>) => {
   try {

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { signIn } from '@/lib/auth';
 import { UserType } from '@/types';
+import { APP_NAME } from '@/lib/config/app';
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -15,7 +16,7 @@ export default function SignUpPage() {
     firstName: '',
     lastName: '',
     phone: '',
-    userType: 'vendor' as UserType,
+    userType: 'renter' as UserType,
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -85,7 +86,7 @@ export default function SignUpPage() {
       <div className="max-w-md w-full bg-white rounded-lg shadow-xl p-8">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Account</h1>
-          <p className="text-gray-600">Join GoLocal Spaces today</p>
+          <p className="text-gray-600">Join {APP_NAME} today</p>
         </div>
 
         {error && (
@@ -170,8 +171,8 @@ export default function SignUpPage() {
               required
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             >
-              <option value="vendor">Vendor (looking for space)</option>
-              <option value="landlord">Property Owner (listing space)</option>
+              <option value="renter">Renter (looking for space)</option>
+              <option value="host">Host (listing space)</option>
               <option value="both">Both</option>
             </select>
           </div>
