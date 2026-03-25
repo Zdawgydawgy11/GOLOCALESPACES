@@ -15,6 +15,11 @@ export const supabaseAdmin = supabaseUrl && supabaseServiceKey
     })
   : null as any;
 
+// Alias used by new Airbnb-style pages
+export async function createServerSupabase() {
+  return createClient();
+}
+
 export async function createClient() {
   const cookieStore = await cookies();
 

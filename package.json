@@ -1,5 +1,5 @@
 {
-  "name": "golocalspaces",
+  "name": "market-space",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -16,6 +16,7 @@
     "@supabase/supabase-js": "^2.50.1",
     "bcryptjs": "^2.4.3",
     "date-fns": "^4.1.0",
+    "lucide-react": "^0.577.0",
     "next": "15.5.5",
     "openai": "^6.9.1",
     "react": "^19.0.0",
