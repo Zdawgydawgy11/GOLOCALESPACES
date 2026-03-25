@@ -7,7 +7,7 @@ const PHONE_REGEX =
 const URL_REGEX = /\bhttps?:\/\/[^\s]+/gi;
 
 const REPLACEMENT =
-  '[contact removed — please keep communication inside B2B Market Space]';
+  '[contact removed — please keep communication inside Market Space]';
 
 export function sanitizeMessageBody(input: string): string {
   return input

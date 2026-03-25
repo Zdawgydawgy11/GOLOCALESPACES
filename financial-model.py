@@ -1,8 +1,8 @@
 """
-B2B MARKET SPACE - SAAS FINANCIAL MODEL GENERATOR
+MARKET SPACE - SAAS FINANCIAL MODEL GENERATOR
 ==================================================
 
-This script generates a comprehensive 5-year financial model for B2B Market Space
+This script generates a comprehensive 5-year financial model for Market Space
 suitable for investor presentations.
 
 SETUP INSTRUCTIONS:
@@ -62,7 +62,7 @@ def parse_business_model_canvas(filepath='business-model-canvas.md'):
 
     if not os.path.exists(filepath):
         print(f"[!] Business Model Canvas file not found at {filepath}")
-        print("[*] Using default assumptions for B2B Market Space marketplace model\n")
+        print("[*] Using default assumptions for Market Space marketplace model\n")
         return None
 
     try:
@@ -87,7 +87,7 @@ def parse_business_model_canvas(filepath='business-model-canvas.md'):
 # These can be overridden by business-model-canvas.md or manually edited
 ASSUMPTIONS = {
     # BUSINESS INFORMATION
-    'company_name': 'B2B Market Space',
+    'company_name': 'Market Space',
     'model_date': datetime.now().strftime('%Y-%m-%d'),
     'currency': 'USD',
 
@@ -1202,7 +1202,7 @@ class ExcelGenerator:
 
 def main():
     print("\n" + "="*60)
-    print("B2B MARKET SPACE - FINANCIAL MODEL GENERATOR")
+    print("MARKET SPACE - FINANCIAL MODEL GENERATOR")
     print("="*60 + "\n")
 
     # Try to load business model canvas

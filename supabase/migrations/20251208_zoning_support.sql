@@ -1,5 +1,5 @@
 -- 20251208_zoning_support.sql
--- Zoning support for B2B Market Space
+-- Zoning support for Market Space
 
 -- Add zoning-related fields to spaces table
 ALTER TABLE spaces

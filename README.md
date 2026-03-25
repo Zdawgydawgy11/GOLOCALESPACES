@@ -1,10 +1,10 @@
-# B2B Market Space
+# Market Space
 
 A marketplace platform connecting hosts with renters, food trucks, and small businesses looking for short-term commercial space.
 
 ## Overview
 
-B2B Market Space simplifies the process of finding and booking temporary business locations. Hosts can monetize underutilized real estate while renters get access to prime locations for their mobile businesses.
+Market Space simplifies the process of finding and booking temporary business locations. Hosts can monetize underutilized real estate while renters get access to prime locations for their mobile businesses.
 
 ## Features
 
@@ -56,8 +56,8 @@ B2B Market Space simplifies the process of finding and booking temporary busines
 
 1. Clone the repository:
 \`\`\`bash
-git clone https://github.com/yourusername/golocalspaces.git
-cd golocalspaces
+git clone https://github.com/yourusername/market-space.git
+cd market-space
 \`\`\`
 
 2. Install dependencies:
@@ -105,7 +105,7 @@ npm run dev
 ## Project Structure
 
 \`\`\`
-golocalspaces/
+market-space/
 ├── app/                    # Next.js app directory
 │   ├── (auth)/            # Authentication routes
 │   ├── (dashboard)/       # Protected dashboard routes
@@ -221,10 +221,10 @@ See \`database-schema.md\` for full details.
 - [ ] Analytics dashboard
 - [ ] Referral program
 
-### Phase 4 - GoLocal Ecosystem
-- [ ] GoLocal Food
-- [ ] GoLocal Services
-- [ ] GoLocal Storage
+### Phase 4 - Market Space Ecosystem
+- [ ] Market Space Food
+- [ ] Market Space Services
+- [ ] Market Space Storage
 - [ ] Unified search across verticals
 
 ## Contributing
@@ -241,7 +241,7 @@ This project is licensed under the MIT License.
 
 ## Support
 
-For support, email support@golocalspaces.com or join our Discord community.
+For support, email support@market-space.com or join our Discord community.
 
 ## Acknowledgments
 
@@ -252,4 +252,4 @@ For support, email support@golocalspaces.com or join our Discord community.
 ---
 
 **Made with ❤️ for local communities**
-# GOLOCALESPACES
+# MARKET-SPACE

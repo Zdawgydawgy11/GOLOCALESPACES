@@ -1,6 +1,6 @@
 # Stripe Payment Integration - Setup Complete
 
-This document outlines the Stripe payment integration that has been implemented for GoLocal Spaces.
+This document outlines the Stripe payment integration that has been implemented for Market Space.
 
 ## What's Been Implemented
 
@@ -77,7 +77,7 @@ Copy the webhook signing secret (starts with `whsec_`) and add it to `.env.local
 
 ### Step 2: Test as a Vendor (Making a Booking)
 
-1. Visit the deployed app at https://golocalspaces.vercel.app
+1. Visit the deployed app at https://market-space.vercel.app
 2. Browse available spaces at `/spaces`
 3. Click on a space to view details
 4. Click "Request Booking"
@@ -220,7 +220,7 @@ Before deploying to production:
 
 ### Connect Settings
 1. Go to Connect → Settings
-2. Platform name: GoLocal Spaces
+2. Platform name: Market Space
 3. Business type: Marketplace
 4. Configure branding (logo, colors)
 

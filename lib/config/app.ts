@@ -1,6 +1,6 @@
 // lib/config/app.ts
 
-export const APP_NAME = 'B2B Market Space';
+export const APP_NAME = 'Market Space';
 
 export const APP_TAGLINE =
   'A marketplace to rent and monetize business-ready spaces.';

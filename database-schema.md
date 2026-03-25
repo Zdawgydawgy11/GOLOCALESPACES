@@ -1,4 +1,4 @@
-# GoLocal Spaces - Database Schema
+# Market Space - Database Schema
 
 ## Core Tables
 

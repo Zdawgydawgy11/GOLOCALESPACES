@@ -7,229 +7,151 @@ import { getCurrentUser, signOut } from '@/lib/auth';
 import { User } from '@/types';
 import { APP_NAME } from '@/lib/config/app';
 
+const STAT_CARDS = [
+  { label: 'Total Bookings', value: '0', sub: '+0 this month', icon: 'B', color: 'bg-blue-50 text-blue-700' },
+  { label: 'Total Earnings', value: '$0', sub: '+$0 this month', icon: '$', color: 'bg-green-50 text-green-700' },
+  { label: 'Active Listings', value: '0', sub: '0 pending review', icon: 'L', color: 'bg-purple-50 text-purple-700' },
+  { label: 'Messages', value: '0', sub: '0 unread', icon: 'M', color: 'bg-rose-50 text-rose-700' },
+];
+
+const QUICK_ACTIONS = [
+  { label: 'List New Space', desc: 'Add a property listing', href: '/dashboard/spaces/new', color: 'bg-rose-600 text-white' },
+  { label: 'Browse Spaces', desc: 'Find your perfect location', href: '/spaces', color: 'bg-gray-900 text-white' },
+  { label: 'Messages', desc: 'View conversations', href: '/dashboard/messages', color: 'bg-white text-gray-700 border border-gray-200' },
+  { label: 'My Bookings', desc: 'Track your reservations', href: '/dashboard/my-bookings', color: 'bg-white text-gray-700 border border-gray-200' },
+];
+
+const DASH_NAV = [
+  { label: 'Dashboard', href: '/dashboard' },
+  { label: 'My Spaces', href: '/dashboard/my-spaces' },
+  { label: 'My Bookings', href: '/dashboard/my-bookings' },
+  { label: 'Messages', href: '/dashboard/messages' },
+  { label: 'Notifications', href: '/dashboard/notifications' },
+];
+
 export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadUser();
-  }, []);
-
-  const loadUser = async () => {
-    try {
-      const currentUser = await getCurrentUser();
-      if (!currentUser) {
+    (async () => {
+      try {
+        const currentUser = await getCurrentUser();
+        if (!currentUser) {
+          router.push('/login');
+          return;
+        }
+        setUser(currentUser);
+      } catch {
         router.push('/login');
-        return;
+      } finally {
+        setLoading(false);
       }
-      setUser(currentUser);
-    } catch (error) {
-      console.error('Error loading user:', error);
-      router.push('/login');
-    } finally {
-      setLoading(false);
-    }
-  };
+    })();
+  }, [router]);
 
   const handleSignOut = async () => {
     try {
       await signOut();
       router.push('/');
-    } catch (error) {
-      console.error('Error signing out:', error);
+    } catch {
+      console.error('Sign out error');
     }
   };
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
-        </div>
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-rose-600" />
       </div>
     );
   }
 
-  const isHost = user?.user_type === 'host' || user?.user_type === 'both';
-  const isRenter = user?.user_type === 'renter' || user?.user_type === 'both';
+  const firstName = user?.first_name || 'there';
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
-            <Link href="/" className="text-2xl font-bold text-primary-600">
-              {APP_NAME}
-            </Link>
-            <div className="flex items-center gap-4">
-              <span className="text-gray-700">
-                {user?.first_name} {user?.last_name}
-              </span>
-              <button
-                onClick={handleSignOut}
-                className="px-4 py-2 text-gray-700 hover:text-primary-600 transition"
-              >
-                Sign Out
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Navigation */}
-      <nav className="bg-white border-b">
+      <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex gap-8 py-4">
-            <Link
-              href="/dashboard"
-              className="text-primary-600 border-b-2 border-primary-600 pb-2 font-semibold"
-            >
-              Dashboard
-            </Link>
-            {isHost && (
+          <div className="flex gap-6 py-3 overflow-x-auto">
+            {DASH_NAV.map((nav, i) => (
               <Link
-                href="/dashboard/my-spaces"
-                className="text-gray-600 hover:text-primary-600 transition"
+                key={nav.href}
+                href={nav.href}
+                className={'text-sm font-medium px-1 py-1 border-b-2 whitespace-nowrap transition-colors ' +
+                  (i === 0
+                    ? 'border-rose-600 text-rose-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-800')}
               >
-                My Spaces
+                {nav.label}
               </Link>
-            )}
-            {isRenter && (
-              <>
-                <Link
-                  href="/spaces"
-                  className="text-gray-600 hover:text-primary-600 transition"
-                >
-                  Browse Spaces
-                </Link>
-                <Link
-                  href="/dashboard/my-bookings"
-                  className="text-gray-600 hover:text-primary-600 transition"
-                >
-                  My Bookings
-                </Link>
-              </>
-            )}
-            <Link
-              href="/dashboard/messages"
-              className="text-gray-600 hover:text-primary-600 transition"
-            >
-              Messages
-            </Link>
-            <Link
-              href="/dashboard/profile"
-              className="text-gray-600 hover:text-primary-600 transition"
-            >
-              Profile
-            </Link>
+            ))}
           </div>
         </div>
-      </nav>
+      </div>
 
-      {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome back, {user?.first_name}!
-          </h1>
-          <p className="text-gray-600">
-            {isHost && isRenter && "Manage your spaces and bookings"}
-            {isHost && !isRenter && "Manage your property listings"}
-            {!isHost && isRenter && "Find and book your perfect space"}
-          </p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-1">{'Welcome back, ' + firstName + '!'}</h1>
+          <p className="text-gray-500">Here is a snapshot of your Market Space activity.</p>
         </div>
 
-        {/* Quick Actions */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          {isHost && (
-            <Link
-              href="/dashboard/spaces/new"
-              className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition"
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
-                  <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900">List New Space</h3>
-                  <p className="text-sm text-gray-600">Add a property listing</p>
-                </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          {STAT_CARDS.map((stat) => (
+            <div key={stat.label} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+              <div className={'w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold mb-3 ' + stat.color}>
+                {stat.icon}
               </div>
-            </Link>
-          )}
+              <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+              <p className="text-sm text-gray-500 mt-0.5">{stat.label}</p>
+              <p className="text-xs text-gray-400 mt-1">{stat.sub}</p>
+            </div>
+          ))}
+        </div>
 
-          {isRenter && (
+        <div className="mb-8">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick actions</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {QUICK_ACTIONS.map((action) => (
+              <Link
+                key={action.href}
+                href={action.href}
+                className={'p-5 rounded-2xl transition-all hover:shadow-md ' + action.color}
+              >
+                <p className="font-semibold text-sm mb-1">{action.label}</p>
+                <p className="text-xs opacity-70">{action.desc}</p>
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-gray-900">Recent Bookings</h2>
+            <Link href="/dashboard/my-bookings" className="text-sm text-rose-600 font-medium hover:underline">
+              View all
+            </Link>
+          </div>
+          <div className="text-center py-10 text-gray-400">
+            <p className="font-medium">No bookings yet</p>
+            <p className="text-sm mt-1">Your recent bookings will appear here.</p>
             <Link
               href="/spaces"
-              className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition"
+              className="mt-4 inline-flex px-4 py-2 bg-rose-600 text-white text-sm font-semibold rounded-xl hover:bg-rose-700 transition-colors"
             >
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
-                  <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900">Browse Spaces</h3>
-                  <p className="text-sm text-gray-600">Find your perfect location</p>
-                </div>
-              </div>
+              Browse spaces
             </Link>
-          )}
-
-          <Link
-            href="/dashboard/messages"
-            className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition"
-          >
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
-                <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900">Messages</h3>
-                <p className="text-sm text-gray-600">View conversations</p>
-              </div>
-            </div>
-          </Link>
+          </div>
         </div>
 
-        {/* Stats Overview */}
-        <div className="grid md:grid-cols-3 gap-6">
-          {isHost && (
-            <>
-              <div className="bg-white p-6 rounded-lg shadow">
-                <h3 className="text-sm font-medium text-gray-600 mb-2">Active Listings</h3>
-                <p className="text-3xl font-bold text-gray-900">0</p>
-                <p className="text-sm text-gray-500 mt-2">+0 this month</p>
-              </div>
-              <div className="bg-white p-6 rounded-lg shadow">
-                <h3 className="text-sm font-medium text-gray-600 mb-2">Total Earnings</h3>
-                <p className="text-3xl font-bold text-gray-900">$0</p>
-                <p className="text-sm text-gray-500 mt-2">+$0 this month</p>
-              </div>
-            </>
-          )}
-          {isRenter && (
-            <>
-              <div className="bg-white p-6 rounded-lg shadow">
-                <h3 className="text-sm font-medium text-gray-600 mb-2">Active Bookings</h3>
-                <p className="text-3xl font-bold text-gray-900">0</p>
-                <p className="text-sm text-gray-500 mt-2">0 pending</p>
-              </div>
-              <div className="bg-white p-6 rounded-lg shadow">
-                <h3 className="text-sm font-medium text-gray-600 mb-2">Saved Spaces</h3>
-                <p className="text-3xl font-bold text-gray-900">0</p>
-                <p className="text-sm text-gray-500 mt-2">View favorites</p>
-              </div>
-            </>
-          )}
+        <div className="mt-6 text-right">
+          <button
+            onClick={handleSignOut}
+            className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            Sign out
+          </button>
         </div>
       </main>
     </div>

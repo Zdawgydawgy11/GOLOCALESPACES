@@ -3,107 +3,108 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import ReviewsList from '@/components/ReviewsList';
+import Image from 'next/image';
+import dynamic from 'next/dynamic';
+import { DEMO_LISTINGS, DemoListing } from '@/lib/demo-listings';
+
+const MapView = dynamic(() => import('@/components/MapView'), { ssr: false });
+
+const AMENITIES_LIST = [
+  { key: 'electricity', label: 'Electricity', emoji: 'e' },
+  { key: 'water_access', label: 'Water Access', emoji: 'w' },
+  { key: 'restrooms', label: 'Restrooms', emoji: 'r' },
+  { key: 'parking', label: 'Parking', emoji: 'p' },
+  { key: 'wifi', label: 'WiFi', emoji: 'n' },
+  { key: 'garbage_access', label: 'Garbage Access', emoji: 't' },
+];
+
+function StarRating({ rating }: { rating: number }) {
+  return (
+    <span className="flex items-center gap-0.5">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <svg
+          key={i}
+          className={'w-4 h-4 ' + (i < Math.floor(rating) ? 'text-rose-500' : 'text-gray-200')}
+          fill="currentColor"
+          viewBox="0 0 20 20"
+        >
+          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+        </svg>
+      ))}
+    </span>
+  );
+}
 
 export default function SpaceDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const [space, setSpace] = useState<any>(null);
+  const [space, setSpace] = useState<DemoListing | null>(null);
   const [loading, setLoading] = useState(true);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [isFavorited, setIsFavorited] = useState(false);
-  const [favoriteLoading, setFavoriteLoading] = useState(false);
 
   useEffect(() => {
-    if (params.id) {
-      fetchSpaceDetails();
-      checkIfFavorited();
-    }
+    if (!params.id) return;
+    (async () => {
+      try {
+        const res = await fetch('/api/spaces/' + params.id);
+        const data = await res.json();
+        if (data.success && data.data) {
+          const s = data.data;
+          setSpace({
+            ...s,
+            images: s.space_images || [],
+            amenities: s.space_amenities?.[0] || s.amenities || {},
+            rating: s.average_rating || 4.5,
+            review_count: s.review_count || 0,
+            featured: s.featured || false,
+            lat: s.lat || s.latitude || 0,
+            lng: s.lng || s.longitude || 0,
+          });
+          setLoading(false);
+          return;
+        }
+      } catch {
+        // fall through
+      }
+      const demo = DEMO_LISTINGS.find((l) => l.id === params.id);
+      setSpace(demo || null);
+      setLoading(false);
+    })();
   }, [params.id]);
 
-  const fetchSpaceDetails = async () => {
-    try {
-      const response = await fetch(`/api/spaces/${params.id}`);
-      const data = await response.json();
-      if (data.success) {
-        setSpace(data.data);
-      }
-    } catch (error) {
-      console.error('Error fetching space details:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const images = space?.images || [];
+  const amenities = space?.amenities || {};
 
-  const checkIfFavorited = async () => {
-    try {
-      const response = await fetch(`/api/favorites/check?spaceId=${params.id}`);
-      if (response.ok) {
-        const data = await response.json();
-        setIsFavorited(data.isFavorited);
-      }
-    } catch (error) {
-      console.error('Error checking favorite status:', error);
-    }
-  };
+  const days =
+    startDate && endDate
+      ? Math.max(
+          1,
+          Math.ceil(
+            (new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24)
+          )
+        )
+      : 0;
 
-  const toggleFavorite = async () => {
-    try {
-      setFavoriteLoading(true);
-
-      if (isFavorited) {
-        const response = await fetch(`/api/favorites?spaceId=${params.id}`, {
-          method: 'DELETE',
-        });
-
-        if (response.ok) {
-          setIsFavorited(false);
-        } else {
-          throw new Error('Failed to remove favorite');
-        }
-      } else {
-        const response = await fetch('/api/favorites', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ spaceId: params.id }),
-        });
-
-        if (response.ok) {
-          setIsFavorited(true);
-        } else {
-          const data = await response.json();
-          if (response.status === 401) {
-            router.push('/login');
-            return;
-          }
-          throw new Error(data.error || 'Failed to add favorite');
-        }
-      }
-    } catch (error) {
-      console.error('Error toggling favorite:', error);
-      alert('Failed to update favorite. Please try again.');
-    } finally {
-      setFavoriteLoading(false);
-    }
-  };
+  const estimatedCost = days > 0 && space ? days * space.price_per_day : 0;
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-600">Loading...</p>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-rose-600" />
       </div>
     );
   }
 
   if (!space) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-600 text-lg mb-4">Space not found</p>
-          <Link href="/spaces" className="text-primary-600 hover:underline">
+      <div className="min-h-screen flex items-center justify-center text-center">
+        <div>
+          <p className="text-xl font-semibold text-gray-900 mb-3">Space not found</p>
+          <Link href="/spaces" className="text-rose-600 hover:underline">
             Browse all spaces
           </Link>
         </div>
@@ -111,401 +112,279 @@ export default function SpaceDetailPage() {
     );
   }
 
-  const images = space.space_images || [];
-  const amenities = space.space_amenities || {};
-  const owner = space.users || {};
-
-  const amenitiesList = [
-    { key: 'electricity', label: 'Electricity', icon: '⚡' },
-    { key: 'water_access', label: 'Water Access', icon: '💧' },
-    { key: 'restrooms', label: 'Restrooms', icon: '🚻' },
-    { key: 'parking', label: 'Parking', icon: '🅿️' },
-    { key: 'wifi', label: 'WiFi', icon: '📶' },
-    { key: 'storage', label: 'Storage', icon: '📦' },
-    { key: 'security_camera', label: 'Security Camera', icon: '📹' },
-    { key: 'covered', label: 'Covered', icon: '⛱️' },
-    { key: 'high_traffic', label: 'High Traffic', icon: '🚗' },
-    { key: 'garbage_access', label: 'Garbage Access', icon: '🗑️' },
-    { key: 'water_dump', label: 'Water Dump', icon: '🚿' },
-  ];
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
-            <Link href="/" className="text-2xl font-bold text-primary-600">
-              GoLocal Spaces
-            </Link>
-            <div className="flex gap-4">
-              <Link
-                href="/spaces"
-                className="px-4 py-2 text-gray-700 hover:text-primary-600 transition"
-              >
-                Browse Spaces
-              </Link>
-              <Link
-                href="/dashboard"
-                className="px-4 py-2 text-gray-700 hover:text-primary-600 transition"
-              >
-                Dashboard
-              </Link>
-            </div>
-          </div>
-        </nav>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Image Gallery */}
-        <div className="bg-white rounded-lg shadow-md overflow-hidden mb-8">
-          {images.length > 0 ? (
-            <div>
-              <div className="relative h-96 bg-gray-200">
-                <img
-                  src={images[currentImageIndex]?.image_url}
-                  alt={space.title}
-                  className="w-full h-full object-cover"
-                />
-                {images.length > 1 && (
-                  <>
-                    <button
-                      onClick={() =>
-                        setCurrentImageIndex((prev) =>
-                          prev === 0 ? images.length - 1 : prev - 1
-                        )
-                      }
-                      className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white px-4 py-2 rounded-lg hover:bg-opacity-75"
-                    >
-                      ←
-                    </button>
-                    <button
-                      onClick={() =>
-                        setCurrentImageIndex((prev) =>
-                          prev === images.length - 1 ? 0 : prev + 1
-                        )
-                      }
-                      className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white px-4 py-2 rounded-lg hover:bg-opacity-75"
-                    >
-                      →
-                    </button>
-                  </>
-                )}
-              </div>
-              {images.length > 1 && (
-                <div className="flex gap-2 p-4 overflow-x-auto">
-                  {images.map((img: any, index: number) => (
-                    <button
-                      key={img.id}
-                      onClick={() => setCurrentImageIndex(index)}
-                      className={`flex-shrink-0 w-24 h-24 rounded-lg overflow-hidden border-2 ${
-                        index === currentImageIndex
-                          ? 'border-primary-600'
-                          : 'border-transparent'
-                      }`}
-                    >
-                      <img
-                        src={img.image_url}
-                        alt={`Thumbnail ${index + 1}`}
-                        className="w-full h-full object-cover"
-                      />
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="h-96 bg-gray-200 flex items-center justify-center">
-              <p className="text-gray-400">No images available</p>
-            </div>
-          )}
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2">
-            {/* Title and Location */}
-            <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-              <div className="flex justify-between items-start mb-2">
-                <h1 className="text-3xl font-bold text-gray-900 flex-1">
-                  {space.title}
-                </h1>
-                <button
-                  onClick={toggleFavorite}
-                  disabled={favoriteLoading}
-                  className="p-3 rounded-full hover:bg-gray-100 transition disabled:opacity-50"
-                  title={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
-                >
-                  <svg
-                    className={`w-7 h-7 ${isFavorited ? 'text-red-500 fill-current' : 'text-gray-400'}`}
-                    fill={isFavorited ? 'currentColor' : 'none'}
-                    stroke="currentColor"
-                    strokeWidth={isFavorited ? 0 : 2}
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                    />
-                  </svg>
-                </button>
-              </div>
-              <p className="text-gray-600 mb-4">
-                {space.address}, {space.city}, {space.state} {space.zip_code}
-              </p>
-              {space.size_sqft && (
-                <p className="text-gray-600">
-                  Size: <span className="font-semibold">{space.size_sqft.toLocaleString()} sqft</span>
-                </p>
-              )}
-            </div>
-
-            {/* Description */}
-            {space.description && (
-              <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-                <h2 className="text-xl font-semibold mb-3">Description</h2>
-                <p className="text-gray-700 whitespace-pre-line">{space.description}</p>
-              </div>
+    <div className="min-h-screen bg-white">
+      {/* Photo Gallery */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+        <div className="relative grid grid-cols-4 grid-rows-2 gap-2 rounded-2xl overflow-hidden h-80 sm:h-96">
+          <div
+            className="col-span-2 row-span-2 relative cursor-pointer bg-gray-200"
+            onClick={() => { setLightboxIndex(0); setLightboxOpen(true); }}
+          >
+            {images[0] && (
+              <Image
+                src={images[0].image_url}
+                alt={space.title}
+                fill
+                unoptimized
+                className="object-cover hover:opacity-95 transition-opacity"
+              />
             )}
+          </div>
+          {[1, 2, 3, 4].map((idx) => (
+            <div
+              key={idx}
+              className="relative cursor-pointer bg-gray-100"
+              onClick={() => { setLightboxIndex(idx); setLightboxOpen(true); }}
+            >
+              {images.length > 0 ? (
+                <Image
+                  src={images[idx % images.length].image_url}
+                  alt={'Photo ' + (idx + 1)}
+                  fill
+                  unoptimized
+                  className={'object-cover hover:opacity-95 transition-opacity' + (idx >= images.length ? ' opacity-60' : '')}
+                />
+              ) : (
+                <div className="w-full h-full bg-gray-200" />
+              )}
+            </div>
+          ))}
+          <button
+            onClick={() => { setLightboxIndex(0); setLightboxOpen(true); }}
+            className="absolute bottom-4 right-4 bg-white border border-gray-300 px-4 py-2 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors shadow-sm z-10"
+          >
+            Show all photos
+          </button>
+        </div>
+      </div>
 
-            {/* Amenities */}
-            <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-              <h2 className="text-xl font-semibold mb-4">Amenities</h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {amenitiesList.map((amenity) =>
-                  amenities[amenity.key] ? (
-                    <div key={amenity.key} className="flex items-center gap-2">
-                      <span className="text-2xl">{amenity.icon}</span>
-                      <span className="text-gray-700">{amenity.label}</span>
+      {/* Main content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+          {/* Left */}
+          <div className="lg:col-span-2 space-y-8">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">{space.title}</h1>
+              <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600 mb-4">
+                <span>{space.city}, {space.state} {space.zip_code}</span>
+                <span>·</span>
+                <span>{space.size_sqft?.toLocaleString()} sqft</span>
+                <span>·</span>
+                <span className="capitalize">{space.space_type?.replace(/_/g, ' ')}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <StarRating rating={space.rating} />
+                <span className="font-semibold">{space.rating}</span>
+                <span className="text-gray-500">({space.review_count} reviews)</span>
+                {space.instant_book && (
+                  <span className="ml-2 text-green-600 font-medium text-sm">Instant Book available</span>
+                )}
+              </div>
+            </div>
+
+            <hr className="border-gray-200" />
+
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-full bg-rose-100 flex items-center justify-center text-rose-700 font-bold text-xl shrink-0">
+                H
+              </div>
+              <div>
+                <p className="font-semibold text-gray-900">Hosted by a local property owner</p>
+                <p className="text-sm text-gray-500">Superhost · Member since 2024</p>
+              </div>
+            </div>
+
+            <hr className="border-gray-200" />
+
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900 mb-3">About this space</h2>
+              <p className="text-gray-700 leading-relaxed">{space.description}</p>
+            </div>
+
+            <hr className="border-gray-200" />
+
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">What this place offers</h2>
+              <div className="grid grid-cols-2 gap-4">
+                {AMENITIES_LIST.map((a) => {
+                  const has = (amenities as any)[a.key];
+                  return (
+                    <div
+                      key={a.key}
+                      className={'flex items-center gap-3 text-sm ' + (has ? 'text-gray-800' : 'text-gray-300')}
+                    >
+                      <div className={'w-6 h-6 rounded-full flex items-center justify-center text-xs ' + (has ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400')}>
+                        {has ? '✓' : '×'}
+                      </div>
+                      <span className={has ? '' : 'line-through'}>{a.label}</span>
                     </div>
-                  ) : null
-                )}
+                  );
+                })}
               </div>
             </div>
 
-            {/* Landlord Requirements */}
-            <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-              <h2 className="text-xl font-semibold mb-4">Requirements & Terms</h2>
-              <div className="space-y-4">
-                {space.allowed_usage_types && space.allowed_usage_types.length > 0 && (
-                  <div>
-                    <h3 className="font-semibold text-gray-900 mb-2">Allowed Usage Types</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {space.allowed_usage_types.map((type: string) => (
-                        <span
-                          key={type}
-                          className="px-3 py-1 bg-primary-100 text-primary-800 rounded-full text-sm"
-                        >
-                          {type.replace('_', ' ')}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
+            <hr className="border-gray-200" />
 
-                {space.operating_hours && (
-                  <div>
-                    <h3 className="font-semibold text-gray-900 mb-1">Operating Hours</h3>
-                    <p className="text-gray-700">{space.operating_hours}</p>
-                  </div>
-                )}
-
-                {space.insurance_requirements && (
-                  <div>
-                    <h3 className="font-semibold text-gray-900 mb-1">Insurance Requirements</h3>
-                    <p className="text-gray-700">{space.insurance_requirements}</p>
-                  </div>
-                )}
-
-                {space.rental_period_length && space.rental_period_unit && (
-                  <div>
-                    <h3 className="font-semibold text-gray-900 mb-1">Rental Period</h3>
-                    <p className="text-gray-700">
-                      {space.rental_period_length} {space.rental_period_unit}
-                    </p>
-                  </div>
-                )}
-
-                {space.vendor_experience_required && (
-                  <div>
-                    <h3 className="font-semibold text-gray-900 mb-1">Experience Required</h3>
-                    <p className="text-gray-700">
-                      {space.vendor_experience_required} years minimum
-                    </p>
-                  </div>
-                )}
-
-                {space.additional_terms && (
-                  <div>
-                    <h3 className="font-semibold text-gray-900 mb-1">Additional Terms</h3>
-                    <p className="text-gray-700 whitespace-pre-line">{space.additional_terms}</p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Owner Info */}
-            <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-              <h2 className="text-xl font-semibold mb-4">Property Owner</h2>
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center">
-                  {owner.profile_image_url ? (
-                    <img
-                      src={owner.profile_image_url}
-                      alt={`${owner.first_name} ${owner.last_name}`}
-                      className="w-full h-full rounded-full object-cover"
-                    />
-                  ) : (
-                    <span className="text-2xl text-gray-400">👤</span>
-                  )}
+            {space.lat && space.lng ? (
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900 mb-4">Location</h2>
+                <div className="h-48 rounded-2xl overflow-hidden border border-gray-200">
+                  <MapView listings={[space]} />
                 </div>
-                <div>
-                  <p className="font-semibold text-gray-900">
-                    {owner.first_name} {owner.last_name}
-                    {owner.verified && (
-                      <span className="ml-2 text-green-600">✓ Verified</span>
-                    )}
-                  </p>
-                  <p className="text-sm text-gray-600">Property Owner</p>
-                </div>
+                <p className="text-sm text-gray-500 mt-2">{space.city}, {space.state} {space.zip_code}</p>
               </div>
-            </div>
-
-            {/* Reviews */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-xl font-semibold mb-4">Reviews</h2>
-              <ReviewsList spaceId={space.id} />
-            </div>
+            ) : null}
           </div>
 
-          {/* Sidebar - Booking */}
+          {/* Right: Booking */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-md p-6 sticky top-8">
-              <div className="mb-6">
-                <p className="text-3xl font-bold text-gray-900">
-                  ${space.price_per_month}
-                  <span className="text-lg text-gray-600 font-normal">/month</span>
+            <div className="sticky top-24 bg-white rounded-2xl border border-gray-200 shadow-xl p-6 space-y-5">
+              <div>
+                <p className="text-2xl font-bold text-gray-900">
+                  ${space.price_per_day}
+                  <span className="text-base font-normal text-gray-500"> / day</span>
                 </p>
-                {space.price_per_day && (
-                  <p className="text-gray-600">or ${space.price_per_day}/day</p>
-                )}
+                <p className="text-sm text-gray-500 mt-0.5">
+                  or ${space.price_per_month?.toLocaleString()} / month
+                </p>
               </div>
+
+              <div className="border border-gray-300 rounded-xl overflow-hidden">
+                <div className="grid grid-cols-2 divide-x divide-gray-300">
+                  <div className="p-3">
+                    <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Start</label>
+                    <input
+                      type="date"
+                      value={startDate}
+                      min={new Date().toISOString().split('T')[0]}
+                      onChange={(e) => setStartDate(e.target.value)}
+                      className="w-full text-sm text-gray-900 focus:outline-none"
+                    />
+                  </div>
+                  <div className="p-3">
+                    <label className="block text-xs font-bold text-gray-700 uppercase mb-1">End</label>
+                    <input
+                      type="date"
+                      value={endDate}
+                      min={startDate || new Date().toISOString().split('T')[0]}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      className="w-full text-sm text-gray-900 focus:outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {days > 0 && (
+                <div className="bg-gray-50 rounded-xl p-4 space-y-2 text-sm">
+                  <div className="flex justify-between text-gray-600">
+                    <span>${space.price_per_day} x {days} day{days > 1 ? 's' : ''}</span>
+                    <span>${estimatedCost}</span>
+                  </div>
+                  <div className="flex justify-between font-semibold text-gray-900 border-t border-gray-200 pt-2">
+                    <span>Total</span>
+                    <span>${estimatedCost}</span>
+                  </div>
+                </div>
+              )}
 
               <button
-                onClick={() => setShowBookingModal(true)}
-                className="w-full py-3 bg-primary-600 text-white rounded-lg font-semibold hover:bg-primary-700 transition mb-3"
+                onClick={() => {
+                  const base = '/checkout?space_id=' + space.id;
+                  const dateParams = startDate && endDate
+                    ? '&start_date=' + startDate + '&end_date=' + endDate
+                    : '';
+                  router.push(base + dateParams);
+                }}
+                className="w-full py-3 bg-rose-600 hover:bg-rose-700 text-white font-semibold rounded-xl transition-colors"
               >
-                Request Booking
+                Request to Book
               </button>
 
               <Link
                 href="/dashboard/messages"
-                className="block w-full py-3 border-2 border-primary-600 text-primary-600 rounded-lg font-semibold hover:bg-primary-50 transition text-center"
+                className="block w-full py-3 border-2 border-gray-300 hover:border-gray-400 text-gray-700 font-semibold rounded-xl text-center transition-colors"
               >
-                Contact Owner
+                Contact Host
               </Link>
 
-              <div className="mt-6 pt-6 border-t border-gray-200">
-                <p className="text-sm text-gray-600 text-center">
-                  You'll be asked to create an account or log in to proceed with booking
-                </p>
-              </div>
+              <p className="text-xs text-gray-400 text-center">
+                You will need an account to complete booking.
+              </p>
+
+              <button
+                onClick={() => setIsFavorited(!isFavorited)}
+                className="w-full flex items-center justify-center gap-2 py-2 text-sm text-gray-500 hover:text-rose-600 transition-colors"
+              >
+                <svg
+                  className={'w-4 h-4 ' + (isFavorited ? 'text-rose-500' : '')}
+                  fill={isFavorited ? 'currentColor' : 'none'}
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                  />
+                </svg>
+                {isFavorited ? 'Saved to favorites' : 'Save to favorites'}
+              </button>
             </div>
           </div>
         </div>
-      </main>
+      </div>
 
-      {/* Booking Modal */}
-      {showBookingModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4">
-            <h2 className="text-2xl font-bold mb-4">Request Booking</h2>
-
-            <div className="space-y-4 mb-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Start Date
-                </label>
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  min={new Date().toISOString().split('T')[0]}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  End Date
-                </label>
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  min={startDate || new Date().toISOString().split('T')[0]}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  required
-                />
-              </div>
-
-              {startDate && endDate && (
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <p className="text-sm text-gray-600 mb-2">Booking Summary:</p>
-                  <p className="font-semibold">
-                    {Math.ceil(
-                      (new Date(endDate).getTime() - new Date(startDate).getTime()) /
-                        (1000 * 60 * 60 * 24)
-                    )}{' '}
-                    days
-                  </p>
-                  <p className="text-sm text-gray-600 mt-2">
-                    Estimated cost: $
-                    {(
-                      (space.price_per_day || space.price_per_month / 30) *
-                      Math.ceil(
-                        (new Date(endDate).getTime() - new Date(startDate).getTime()) /
-                          (1000 * 60 * 60 * 24)
-                      )
-                    ).toFixed(2)}
-                  </p>
-                </div>
-              )}
-            </div>
-
-            <div className="flex gap-4">
-              <button
-                onClick={() => {
-                  if (startDate && endDate) {
-                    router.push(
-                      `/checkout?space_id=${space.id}&start_date=${startDate}&end_date=${endDate}`
-                    );
-                  }
-                }}
-                disabled={!startDate || !endDate}
-                className={`flex-1 py-3 rounded-lg font-semibold transition text-center ${
-                  startDate && endDate
-                    ? 'bg-primary-600 text-white hover:bg-primary-700'
-                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                }`}
-              >
-                Proceed to Checkout
-              </button>
-            </div>
-
-            <button
-              onClick={() => {
-                setShowBookingModal(false);
-                setStartDate('');
-                setEndDate('');
-              }}
-              className="mt-4 w-full text-gray-600 hover:text-gray-900"
-            >
-              Cancel
-            </button>
+      {/* Lightbox */}
+      {lightboxOpen && images.length > 0 && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center"
+          onClick={() => setLightboxOpen(false)}
+        >
+          <button
+            className="absolute top-4 right-4 text-white p-2 rounded-full bg-white/20 hover:bg-white/30"
+            onClick={() => setLightboxOpen(false)}
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+          <button
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-white p-3 rounded-full bg-white/20 hover:bg-white/30"
+            onClick={(e) => {
+              e.stopPropagation();
+              setLightboxIndex((lightboxIndex - 1 + images.length) % images.length);
+            }}
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <div
+            className="max-w-4xl max-h-[80vh] relative w-full mx-16"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={images[lightboxIndex % images.length].image_url}
+              alt={'Photo ' + (lightboxIndex + 1)}
+              className="w-full h-full object-contain max-h-[80vh] rounded-lg"
+            />
           </div>
+          <button
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-white p-3 rounded-full bg-white/20 hover:bg-white/30"
+            onClick={(e) => {
+              e.stopPropagation();
+              setLightboxIndex((lightboxIndex + 1) % images.length);
+            }}
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+          <p className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white text-sm">
+            {lightboxIndex + 1} / {images.length}
+          </p>
         </div>
       )}
     </div>

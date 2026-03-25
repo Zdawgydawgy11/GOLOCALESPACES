@@ -1,5 +1,5 @@
 // lib/zoning/lookup.ts
-// Zoning lookup utilities for B2B Market Space
+// Zoning lookup utilities for Market Space
 
 import { supabase } from '@/lib/supabase/client';
 import type { ZoningLookup } from '@/types';

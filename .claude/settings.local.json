@@ -18,7 +18,12 @@
       "Bash(npm install:*)",
       "Bash(pip install:*)",
       "Bash(python:*)",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(grep:*)",
+      "Bash(npx vercel:*)",
+      "Bash(rm -rf .next)",
+      "Bash(NEXT_TELEMETRY_DISABLED=1 npm run build)",
+      "Bash(python3 /c/Users/penny/temp_write.py)"
     ],
     "deny": [],
     "ask": []

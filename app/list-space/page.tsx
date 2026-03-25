@@ -140,7 +140,7 @@ export default function ListSpacePage() {
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
             <Link href="/" className="text-2xl font-bold text-primary-600">
-              GoLocal Spaces
+              Market Space
             </Link>
             <div className="flex gap-4">
               <Link href="/spaces" className="px-4 py-2 text-gray-700 hover:text-primary-600">

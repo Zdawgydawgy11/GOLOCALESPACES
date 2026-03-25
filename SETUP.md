@@ -1,6 +1,6 @@
-# GoLocal Spaces - Setup Guide
+# Market Space - Setup Guide
 
-This guide will walk you through setting up the GoLocal Spaces platform from scratch.
+This guide will walk you through setting up the Market Space platform from scratch.
 
 ## Prerequisites
 
@@ -32,7 +32,7 @@ Before you begin, ensure you have:
 2. Click "New Project"
 3. Choose an organization or create one
 4. Enter project details:
-   - Name: golocalspaces
+   - Name: market-space
    - Database Password: (save this somewhere secure)
    - Region: Choose closest to your users
 
@@ -106,7 +106,7 @@ Stripe Connect is needed for marketplace payments:
 2. Choose "Platform or Marketplace"
 3. Complete the onboarding
 4. Configure your platform settings:
-   - Platform name: GoLocal Spaces
+   - Platform name: Market Space
    - Business type: Marketplace
    - Support email: your email
 
@@ -142,7 +142,7 @@ stripe listen --forward-to localhost:3000/api/webhooks/stripe
 ### 4.1 Create Google Cloud Project
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com)
-2. Create a new project: "GoLocal Spaces"
+2. Create a new project: "Market Space"
 3. Enable billing (required for Maps API)
 
 ### 4.2 Enable APIs
@@ -292,4 +292,4 @@ After deployment:
 
 ---
 
-You're now ready to build GoLocal Spaces!
+You're now ready to build Market Space!
