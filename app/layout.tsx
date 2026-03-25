@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { APP_NAME, APP_DESCRIPTION } from '@/lib/config/app';
-// import { HelpCenterWidget } from '@/components/support/HelpCenterWidget'; // Part 4
+import { Navbar } from '@/components/Navbar';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -19,10 +19,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.className} bg-gray-50 text-gray-900`}>
-        {/* TODO: Add Header/Nav component */}
+      <body className={`${inter.className} bg-white text-gray-900`}>
+        <Navbar />
         {children}
-        {/* <HelpCenterWidget />  // will be implemented in Part 4 */}
       </body>
     </html>
   );
