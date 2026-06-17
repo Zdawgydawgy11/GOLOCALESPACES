@@ -9,20 +9,42 @@ import { DEMO_LISTINGS, DemoListing } from '@/lib/demo-listings';
 
 const MapView = dynamic(() => import('@/components/MapView'), { ssr: false });
 
+const USE_TYPES = [
+  { value: '', label: 'All Properties' },
+  { value: 'personal', label: 'Non-Commercial' },
+  { value: 'commercial', label: 'Commercial' },
+  { value: 'events', label: 'Events' },
+];
+
 const SPACE_TYPES = [
   { value: '', label: 'All types' },
-  { value: 'parking_lot', label: 'Parking Lot' },
+  { value: 'storage_unit', label: 'Storage Unit' },
+  { value: 'parking_lot', label: 'Parking' },
+  { value: 'warehouse', label: 'Warehouse' },
+  { value: 'garage', label: 'Garage' },
+  { value: 'food_truck_vending', label: 'Food Truck Vending' },
+  { value: 'food_truck_storage', label: 'Food Truck Storage' },
+  { value: 'mobile_vendor', label: 'Mobile Vendor Space' },
+  { value: 'commissary_kitchen', label: 'Commissary Kitchen' },
+  { value: 'office', label: 'Office' },
   { value: 'storefront', label: 'Storefront' },
   { value: 'vacant_land', label: 'Vacant Land' },
-  { value: 'warehouse', label: 'Warehouse' },
   { value: 'other', label: 'Other' },
+];
+
+const TIMEFRAMES = [
+  { value: '', label: 'Any Duration' },
+  { value: 'by_day', label: 'By Day' },
+  { value: 'by_week', label: 'By Week' },
+  { value: 'by_month', label: 'By Month' },
+  { value: 'by_year', label: 'By Year' },
 ];
 
 const SIZE_OPTIONS = [
   { value: '', label: 'Any size' },
   { value: '0-500', label: 'Under 500 sqft' },
-  { value: '500-1000', label: '500-1,000 sqft' },
-  { value: '1000-2500', label: '1,000-2,500 sqft' },
+  { value: '500-1000', label: '500–1,000 sqft' },
+  { value: '1000-2500', label: '1,000–2,500 sqft' },
   { value: '2500-99999', label: '2,500+ sqft' },
 ];
 
@@ -113,6 +135,8 @@ function SpacesContent() {
   const [endDate, setEndDate] = useState(searchParams.get('end') || '');
   const [size, setSize] = useState(searchParams.get('size') || '');
   const [spaceType, setSpaceType] = useState(searchParams.get('space_type') || '');
+  const [useType, setUseType] = useState(searchParams.get('use_type') || '');
+  const [timeframe, setTimeframe] = useState('');
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
   const [amenities, setAmenities] = useState<Record<string, boolean>>({});
@@ -181,6 +205,7 @@ function SpacesContent() {
   }, [fetchSpaces]);
 
   const filteredSpaces = spaces.filter((s) => {
+    if (useType && s.use_type && !s.use_type.includes(useType as 'personal' | 'commercial' | 'events')) return false;
     if (size) {
       const parts = size.split('-').map(Number);
       if (s.size_sqft < parts[0] || s.size_sqft > parts[1]) return false;
@@ -198,6 +223,7 @@ function SpacesContent() {
     if (endDate) params.set('end', endDate);
     if (size) params.set('size', size);
     if (spaceType) params.set('space_type', spaceType);
+    if (useType) params.set('use_type', useType);
     router.push('/spaces?' + params.toString());
   };
 
@@ -209,6 +235,19 @@ function SpacesContent() {
     <div className="min-h-screen bg-gray-50">
       <div className="sticky top-16 z-30 bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+          {/* Use-type toggle */}
+          <div className="flex items-center gap-2 mb-3 flex-wrap">
+            {USE_TYPES.map((t) => (
+              <button
+                key={t.value}
+                onClick={() => setUseType(t.value)}
+                className={'px-4 py-1.5 rounded-lg text-sm font-medium transition-all ' + (useType === t.value ? 'bg-rose-600 text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200')}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
             <div className="flex flex-1 gap-2 items-center bg-gray-50 border border-gray-200 rounded-xl px-4 py-2">
               <input
@@ -315,6 +354,19 @@ function SpacesContent() {
                 </div>
 
                 <div>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase mb-2">Rental Duration</label>
+                  <select
+                    value={timeframe}
+                    onChange={(e) => setTimeframe(e.target.value)}
+                    className="border border-gray-200 rounded-xl px-3 py-1.5 text-sm bg-white focus:outline-none"
+                  >
+                    {TIMEFRAMES.map((o) => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
                   <label className="block text-xs font-semibold text-gray-500 uppercase mb-2">Price / Month</label>
                   <div className="flex items-center gap-2">
                     <input
@@ -368,6 +420,8 @@ function SpacesContent() {
               onClick={() => {
                 setCity('');
                 setSpaceType('');
+                setUseType('');
+                setTimeframe('');
                 setAmenities({});
                 setSize('');
                 setMinPrice('');

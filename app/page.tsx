@@ -5,13 +5,15 @@ import { DEMO_LISTINGS, DemoListing } from '@/lib/demo-listings';
 import { SearchBar } from '@/components/search/SearchBar';
 
 const CATEGORIES = [
-  { icon: '🚚', label: 'Food Truck', value: 'food_truck' },
-  { icon: '🏪', label: 'Storefront', value: 'storefront' },
-  { icon: '🅿️', label: 'Parking Lot', value: 'parking_lot' },
+  { icon: '📦', label: 'Storage', value: 'storage_unit' },
+  { icon: '🅿️', label: 'Parking', value: 'parking_lot' },
   { icon: '🏭', label: 'Warehouse', value: 'warehouse' },
-  { icon: '🎪', label: 'Pop-up', value: 'pop_up' },
-  { icon: '🎉', label: 'Event Space', value: 'event' },
-  { icon: '🚗', label: 'Drive-Thru', value: 'drive_thru' },
+  { icon: '🚗', label: 'Garage', value: 'garage' },
+  { icon: '🚚', label: 'Food Truck Vending', value: 'food_truck_vending' },
+  { icon: '🍳', label: 'Commissary Kitchen', value: 'commissary_kitchen' },
+  { icon: '🛒', label: 'Mobile Vendor', value: 'mobile_vendor' },
+  { icon: '💼', label: 'Office', value: 'office' },
+  { icon: '🏪', label: 'Storefront', value: 'storefront' },
   { icon: '🌿', label: 'Vacant Land', value: 'vacant_land' },
 ];
 
